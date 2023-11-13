@@ -1,0 +1,160 @@
+1. SIMPLEST BUILD ON YOUR OWN MACHINE
+
+Mac with Homebrew clang, or Linux with clang, is assumed.
+
+For a simpler standardized build on AWS EC2, see option (2) below.
+
+
+1a. MAC
+
+You need Xcode:
+
+$ sudo xcode-select --install
+
+You need Homebrew. Then install its clang, libpng, and jpeg-turbo:
+
+$ brew install llvm libpng jpeg-turbo libtiff
+
+For an Apple silicon Mac, set these environment variables:
+
+export CC="/opt/homebrew/opt/llvm/bin/clang"
+export CPPFLAGS="-I/opt/homebrew/include"
+export LDFLAGS="-L/opt/homebrew/lib"
+
+For an Intel Mac, replace /opt/homebrew with /usr/local.
+
+To build optimized executables, placed in build/opt/bin:
+
+$ make opt
+
+If you are interested in building and running the unit tests in optimized mode:
+
+$ make otest
+
+
+1b. LINUX
+
+Check the examples below for AWS EC2 boxes running different distros. If your
+distro isn't covered, or you still get stuck:
+
+- For errors with -lz, install something like zlib, zlib-dev, or zlib1g-dev.
+- For errors with -lpng, install something like libpng or libpng-dev[el].
+- For errors with -ljpeg, install something like libjpeg or libjpeg-dev[el].
+- For errors with -ltiff, install something like libtiff or libtiff-dev[el].
+- You should not get errors with -lpthread on any Linux distro.
+
+The make commands are the same as for option (1a) above.
+
+
+2. EXAMPLE AWS EC2 BUILD
+
+You need to have an AWS EC2 account (Free Tier is fine).
+
+
+2a. AMAZON LINUX 2 AMI INSTANCE ON AWS EC2
+
+scp this .tar.gz file to it.
+
+On that instance:
+$ tar -xf <this-file>.tar.gz
+$ sudo yum groupinstall "Development Tools"
+$ sudo yum install clang clang-devel llvm llvm-devel
+$ sudo yum install libjpeg-devel libpng-devel libtiff-devel
+$ make otest  [should build and run all unit tests without error]
+$ make opt  [should build all optimized executables]
+$ ll build/opt/bin/  [lists all optimized executables, including unit tests]
+$ build/opt/bin/<one-of-the-executables>  [should execute it]
+
+
+2b. UBUNTU INSTANCE ON AWS EC2
+
+scp this .tar.gz file to it.
+
+On that instance:
+$ tar -xf <this-file>.tar.gz
+$ sudo apt update
+$ sudo apt install make clang zlib1g-dev libpng-dev libjpeg-dev libtiff-dev
+$ make otest  [should build and run all unit tests without error]
+$ make opt  [should build all optimized executables]
+$ ll build/opt/bin/  [lists all optimized executables, including unit tests]
+$ build/opt/bin/<one-of-the-executables>  [should execute it]
+
+
+2c. RED HAT INSTANCE ON AWS EC2
+
+scp this .tar.gz file to it.
+
+On that instance:
+$ tar -xf <this-file>.tar.gz
+$ sudo yum install make llvm clang
+$ sudo yum install zlib-devel libpng-devel libjpeg-devel libtiff-devel
+$ make otest  [should build and run all unit tests without error]
+$ make opt  [should build all optimized executables]
+$ ll build/opt/bin/  [lists all optimized executables, including unit tests]
+$ build/opt/bin/<one-of-the-executables>  [should execute it]
+
+
+2d. SUSE INSTANCE ON AWS EC2
+
+scp this .tar.gz file to it.
+
+On that instance:
+$ tar -xf <this-file>.tar.gz
+$ sudo zypper refresh
+$ sudo zypper install make gcc clang7
+$ sudo zypper install zlib-devel libpng-devel libjpeg-devel libtiff-devel
+$ make otest  [should build and run all unit tests without error]
+$ make opt  [should build all optimized executables]
+$ ll build/opt/bin/  [lists all optimized executables, including unit tests]
+$ build/opt/bin/<one-of-the-executables>  [should execute it]
+
+
+2e. DEBIAN INSTANCE ON AWS EC2
+
+scp this .tar.gz file to it.
+
+On that instance:
+$ tar -xf <this-file>.tar.gz
+$ sudo apt-get update
+$ sudo apt-get install make clang
+$ sudo apt-get install zlib1g-dev libpng-dev libjpeg-dev libtiff-dev
+$ make otest  [should build and run all unit tests without error]
+$ make opt  [should build all optimized executables]
+$ ls -l build/opt/bin/  [lists all optimized executables, including unit tests]
+$ build/opt/bin/<one-of-the-executables>  [should execute it]
+
+
+3. MORE COMPLICATED (DEBUG COMPILATION, INCLUDING ASAN AND LSAN)
+
+'make' will build all executables in debug mode, placed in build/dbg/bin.
+'make test' will build and run all unit tests, compiled in debug mode.
+
+If you get errors with "asan" anywhere in the clang library, and can't figure
+out how to fix them, then use option (1) or (2) above.
+
+ASAN and LSAN should work on Mac Homebrew clang, because they do for me. You
+will likely need to suppress some leaks from system libraries with a
+suppression file, such as
+
+export LSAN_OPTIONS=suppressions=/Users/<me>/leaksupp.txt:print_suppressions=0
+
+As of March 2023, this is my ~/leaksupp.txt, which results in no errors:
+
+leak:/usr/lib/libobjc.A.dylib
+leak:/usr/lib/system/libsystem_c.dylib
+leak:wrap_malloc
+
+
+4. CODE LANGUAGE AND PARADIGM
+
+For information about the "jpC" paradigm used in this code, see lib/jpc.h.
+
+All code is in ANSI C (C89).
+
+If you use VIM, a syntax file that makes the jpC paradigm easier to read is
+contained in _VIM, which you should copy to ~/.vim/after/syntax/c.vim.
+
+
+5. LICENSE
+
+All code is made available under the MIT License (see _LICENSE).
